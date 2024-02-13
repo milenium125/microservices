@@ -95,7 +95,7 @@ async function findOneEmployee(req, res){
         //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del employee
         const sql_data_user = "SELECT * FROM persona WHERE id_persona = ?";
         try{
-            
+            console.log(rowsEmployee);
             //se setea el parametro de id_persona obtenido de la consulta sql a la tabla employee
             employee.setIdUser(rowsEmployee[0].id_persona);
             //console.log(employee.getIdUser());
@@ -128,7 +128,7 @@ async function findOneEmployee(req, res){
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        res.status(200).send("Objeto: "+JSON.stringify(employee));
+        res.status(200).send(employee.toString());
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');

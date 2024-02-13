@@ -28,6 +28,16 @@ class Empleado extends Usuario{
         this._rolEmployee = rolEmployee;
     }
 
+    toString(){
+        return `{
+            "id_empleado":${this._idEmployee},
+            "nombre":"${this._firstNameUser}",
+            "apellido":"${this._lastNameUser}",
+            "rol":"${this._rolEmployee}",
+            "estado":"${this._stateEmployee}",
+            "id_persona":"${this._idUser}"
+        }`;
+    }
 }
 
 module.exports = Empleado;

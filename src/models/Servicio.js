@@ -1,10 +1,11 @@
 class Servicio{
-    constructor(idService, service, description, price, stateService){
+    constructor(idService, service, description, price, stateService, categoria){
         this._idService = idService,
         this._service = service,
         this.description = description,
         this._price = price,
-        this._stateService = stateService
+        this._stateService = stateService,
+        this._categoria = categoria
     }
 
     getIdService(){
@@ -41,6 +42,25 @@ class Servicio{
     setStateService(stateService){
         this._stateService = stateService;
     }
+
+    getCategoria(){
+        return this._categoria;
+    }
+    setCategoria(categoria){
+        this._categoria = categoria;
+    }
+    
+
+    toString(){
+        return `{"id_servicio":${this._idService},
+        "servicio":"${this._service}",
+        "descripcion":"${this._description}",
+        "precio":"${this._price}",
+        "estado":${this._stateService},
+        "categoria":"${this._categoria}"
+        }`;
+    }
 }
+
 
 module.exports = Servicio;

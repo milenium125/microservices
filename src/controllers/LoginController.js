@@ -40,6 +40,21 @@ async function createLogin(req, res){
     }
 }
 
+async function thereIsAnyUser(req, res){
+    var username = req.body.username;
+    try {
+        const sql = "SELECT id_persona FROM login WHERE user = ?;";
+        const result_login = await POOL_CONNECTION.execute(sql, [username]);
+        //console.log("test")   
+        if(result_login.length > 0){
+            res.send(JSON.stringify(`{"id_persona": ${result_login[0].id_persona}}`));
+        }
+    } catch (e) {
+        console.log(e)
+        res.send('Sin resultados');
+    }
+}
+
 async function findOneLogin(req, res){
     try{
         //se crea el objeto cliente
@@ -66,6 +81,50 @@ async function findOneLogin(req, res){
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
         res.status(200).send("Objeto: "+JSON.stringify(login));
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
+async function findOneUser(req, res){
+    console.log(req.body);
+    try{
+        //se crea el objeto cliente
+        let login = new Login();
+        //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
+        login.setUser(req.params.user)
+        //Obtener conexion a la BBDD
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+        //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
+        const sql = "SELECT * FROM login WHERE username = ?";
+        
+        //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
+        const [rowsLogin, fieldsLogin] = await POOL_CONNECTION.execute(sql, [req.body.username]);
+        //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
+        try{  
+            //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
+            if(rowsLogin.length > 0){
+                login.setUsername(rowsLogin[0].username);
+                login.setPassword(rowsLogin[0].contraseña);
+                login.setUser(rowsLogin[0].id_persona);   
+                console.log(login);
+                if(login.getPassword() == req.body.password){
+                    res.status(200).send({"id_persona":login.getUser()});
+                }else{
+                    res.status(302).send({"error": "credenciales incorrectas"});   
+                }
+            }else{
+                res.status(500).send({"error": "No encontrado"}); 
+            }
+
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send({"error": "No encontrado"}); 
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+        
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
@@ -172,4 +231,4 @@ function prueba4(req, res){
     
 }
 
-module.exports = {createLogin, prueba4, findOneLogin, findAllLogin, updateOneLogin, deleteOneLogin, deleteAllLogin}
+module.exports = {createLogin, prueba4, findOneLogin, findAllLogin, updateOneLogin, deleteOneLogin, deleteAllLogin, findOneUser, thereIsAnyUser}

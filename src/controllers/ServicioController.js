@@ -56,26 +56,31 @@ async function findOneService(req, res){
         const sql = "SELECT * FROM servicios WHERE id_servicio = ?";
         //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
         const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql, [service.getIdService()]);
+        
+        const sql_service = "SELECT * FROM servicios_empleado WHERE id_servicio = ?";
+        const [rowsServiceTrabajador, fieldsServiceTrabajador] = await POOL_CONNECTION.execute(sql_service, [rowsService[0].id_servicio]);
         //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
         try{  
             //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
             service.setService(rowsService[0].servicio);
             service.setDescription(rowsService[0].descripcion);
-            service.setPrice(rowsService[0].precio);
+            service.setPrice(rowsServiceTrabajador[0].precio);
             service.setStateService(rowsService[0].id_estado);
-
+            service.setCategoria(rowsService[0].categoria);
+            console.log(service);
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        res.status(200).send("Objeto: "+JSON.stringify(service));
+        res.status(200).send(service.toString());
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
     }
 }
+
 
 async function findAllService(req, res){
     try{
@@ -100,6 +105,89 @@ async function findAllService(req, res){
                 
             }
             res.status(200).send(JSON.stringify(response));
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+    
+        
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
+async function findAllServiceAvailables(req, res){
+    
+    try{
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+        try{
+            const sql = "SELECT id_servicio FROM servicios_empleado";
+            const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql);       
+
+            var response = [];
+            var response_data = [];
+
+            for (let i = 0; i < rowsService.length; i++) {
+                if(response.includes(rowsService[i].id_servicio)){
+                    continue
+                }else{
+                    response.push(rowsService[i].id_servicio);
+                }
+            }
+            console.log(response);
+            for (let i = 0; i < response.length; i++) {
+                const sql_find_service = "SELECT * FROM servicios WHERE id_servicio = ?";
+                console.log(response[i]);
+                const [rowsFindService, fieldsFindService] = await POOL_CONNECTION.execute(sql_find_service, [response[i]]);
+                //Se instancia la entidad cliente
+                const sql_service = "SELECT * FROM servicios_empleado WHERE id_servicio = ?";
+                const [rowsServiceTrabajador, fieldsServiceTrabajador] = await POOL_CONNECTION.execute(sql_service, [rowsFindService[0].id_servicio]);
+                let service = new Servicio();
+                // console.log(rowsUser); 
+                console.log(rowsFindService);
+                console.log(rowsFindService[0].categoria);
+                service.setIdService(rowsFindService[0].id_servicio);
+                service.setService(rowsFindService[0].servicio);
+                service.setDescription(rowsFindService[0].descripcion);
+                service.setPrice(rowsServiceTrabajador[0].precio);
+                service.setStateService(rowsFindService[0].id_estado);
+                service.setCategoria(rowsFindService[0].categoria);
+                response_data.push(service.toString());
+                
+            }
+            res.status(200).send(response_data);
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+    
+        
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
+async function findAllTrabajadorBySevices(req, res){
+    
+    try{
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+        try{
+            const sql = "SELECT id_empleado FROM servicios_empleado WHERE id_servicio = ?";
+            const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql, [req.params.id]);       
+
+            var response_data = [];
+
+            for (let i = 0; i < rowsService.length; i++) {
+                // console.log(rowsUser); 
+                response_data.push(rowsService[i].id_empleado);
+            }
+            res.status(200).send(response_data);
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
@@ -181,4 +269,4 @@ function prueba3(req, res){
     
 }
 
-module.exports = {createService, prueba3, findOneService, findAllService, updateOneService, deleteOneService, deleteAllService}
+module.exports = {createService, prueba3, findOneService, findAllService, updateOneService, deleteOneService, deleteAllService, findAllServiceAvailables, findAllTrabajadorBySevices}

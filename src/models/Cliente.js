@@ -2,9 +2,9 @@ const Usuario = require('./Usuario');
 class Cliente extends Usuario{
     constructor(){
         super();
-        this._idClient = undefined,
-        this._stateClient = undefined,
-        this._rolClient = undefined
+        this._idClient = undefined;
+        this._stateClient = undefined;
+        this._rolClient = undefined;
     }
 
     getIdClient(){
@@ -26,6 +26,20 @@ class Cliente extends Usuario{
     }
     setRolClient(rolClient){
         this._rolClient = rolClient;
+    }
+
+    toString(){
+        return `{"id_persona":${this._idUser},
+        "id_cliente":"${this._idClient}",
+        "nombre":"${this._firstNameUser}",
+        "apellido":"${this._lastNameUser}",
+        "direccion":"${this._addressUser}",
+        "telefono":"${this._phoneNumberUser}",
+        "tipo_cliente":"${this._rolClient}",
+        "email":"${this._emailUser}",
+        "foto_perfil": ${this._pictureProfile}",
+        "estado":${this._stateClient}
+        }`;
     }
 }
 

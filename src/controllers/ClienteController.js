@@ -5,11 +5,14 @@ async function createCustomer(req, res){
     try{
         const POOL_CONNECTION = await createPOOL_CONNECTION();
         console.log(req.body);
+        console.log("cliente: ");
         //creacion del objeto cliente
         let cliente = new Cliente();
+        console.log("cliente: ");
         //Usuario.setIdUser();
         //set de los datos enviados por el body de la peticion al objeto construido
         cliente.setFirstNameUser(req.body.name);
+        console.log("cliente: "+cliente);
         cliente.setLastNameUser(req.body.lastname);
         cliente.setEmailUser(req.body.email);
         cliente.setPhoneNumberUser(req.body.phonenumber);
@@ -17,8 +20,8 @@ async function createCustomer(req, res){
         cliente.setNumberDocument(req.body.dni);
         cliente.setDateRegister(new Date());
         cliente.setAddressUser(req.body.address);
-        cliente.setPictureProfile(req.body.picture_profile);
-
+        cliente.setPictureProfile("D:/Documentos/Microservices_v01/microservices_backend/src/assets/sin_imagen.jpg");
+        console.log("cliente: "+cliente);
         //sentencia sql para insertar una nueva persona, esto es previo a la creacion del cliente
         const sql = "INSERT INTO persona (nombres, apellidos, telefono, direccion, email, foto_perfil, numero_documento, id_tipo_documento) VALUES (?,?,?,?,?,?,?,?);";
 
@@ -33,7 +36,7 @@ async function createCustomer(req, res){
             cliente.getNumberDocument(),
             cliente.getTypeDocument()
         ];
-        // console.log(cliente);
+        console.log("inserts: "+inserts);
         try{
             //ejecucion de la sentencia de registro de la persona
             const result_user = await POOL_CONNECTION.execute(sql, inserts);
@@ -65,7 +68,7 @@ async function createCustomer(req, res){
             //console.log(result_user);
             //devolucion del objeto cliente al cliente de la API
             console.log(cliente);
-            res.send('Data Insert Successfully: ' + JSON.stringify(cliente));
+            res.send(JSON.stringify(cliente));
         } catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al insertar datos: ' + err.message);
@@ -118,19 +121,59 @@ async function findOneCustomer(req, res){
             cliente.setAddressUser(rowsUser[0].direccion);
             cliente.setPictureProfile(rowsUser[0].foto_perfil);
             cliente.setStateClient(estado[0].estado);
-
+            console.log(cliente);
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        res.status(200).send("Objeto: "+JSON.stringify(cliente));
+        res.status(200).send(cliente);
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
     }
 }
+
+async function findOneClient(req, res){
+    try{
+        //se crea el objeto cliente
+        var cliente = new Cliente();
+        //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
+        cliente.setIdUser(req.params.id)
+        //Obtener conexion a la BBDD
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+        //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
+        const sql = "SELECT * FROM cliente WHERE id_persona = ?";
+        console.log("id: "+req.params.id)
+        
+        try{
+            //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
+            const [rowsCustomer, fieldsCustomer] = await POOL_CONNECTION.execute(sql, [req.params.id]);
+            console.log("id cliente: "+ rowsCustomer[0])
+            cliente.setIdClient(rowsCustomer[0].id_cliente);
+        //     cliente.setFirstNameUser(rowsCustomer[0].nombre);
+        //     cliente.setLastNameUser(rowsCustomer[0].apellido);
+        //     cliente.setAddressUser(rowsCustomer[0].id_cliente);
+        //     cliente.setPhoneNumberUser(rowsCustomer[0].id_cliente);
+        //     cliente.setPictureProfile(rowsCustomer[0].id_cliente);
+        //     cliente.setNumberDocument(rowsCustomer[0].id_cliente);
+        //     cliente.setRolClient(rowsCustomer[0].id_cliente);
+        //     cliente.setEmailUser(rowsCustomer[0].id_cliente);
+        //     cliente.setStateClient(rowsCustomer[0].id_cliente);
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+        res.status(200).send(cliente);
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
 
 async function findAllCustomer(req, res){
     try{
@@ -267,4 +310,4 @@ function prueba(req, res){
     
 }
 
-module.exports = {createCustomer, prueba, findOneCustomer, findAllCustomer, updateOneCustomer, deleteOneCustomer, deleteAllCustomer}
+module.exports = {createCustomer, prueba, findOneCustomer, findAllCustomer, updateOneCustomer, deleteOneCustomer, deleteAllCustomer, findOneClient}

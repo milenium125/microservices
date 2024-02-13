@@ -25,10 +25,15 @@ async function createPayment(req, res){
         ];
         // console.log(cliente);
         try{
-            //ejecucion de la sentencia de registro de la persona
+            // Ejecución de la sentencia de registro de la persona
             const result_payment = await POOL_CONNECTION.execute(sql, inserts);
-            //console.log("test")   
-            res.send('Data Insert Successfully: ' + JSON.stringify(payment));
+
+            // Obtener el último ID insertado
+            var last_id_result = await POOL_CONNECTION.execute("SELECT MAX(id_pago) AS id_pago FROM pago;");
+            const last_id = last_id_result[0][0].id_pago;
+
+            console.log("last_id: " + last_id.toString());
+            res.status(200).send(last_id.toString());
         } catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al insertar datos: ' + err.message);

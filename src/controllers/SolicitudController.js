@@ -1,5 +1,7 @@
 const {createPOOL_CONNECTION, closePOOL_CONNECTION} = require('../config/database');
 const Solicitud = require('../models/Solicitud');
+const Cliente = require('../models/Cliente');
+const Trabajador = require("../models/Trabajador");
 
 async function createRequest(req, res){
     try{
@@ -31,12 +33,14 @@ async function createRequest(req, res){
             request.getClient(),
             request.getStateRequest()
         ];
-        // console.log(cliente);
+        const last_id = await POOL_CONNECTION.execute("SELECT MAX(id_solicitud) AS id FROM solicitud");
+        request.setIdRequest(last_id[0][0].id)
+        console.log("ultimo id: "+last_id[0][0].id);
         try{
             //ejecucion de la sentencia de registro de la persona
             const result_request = await POOL_CONNECTION.execute(sql, inserts);
             //console.log("test")   
-            res.send('Data Insert Successfully: ' + JSON.stringify(request));
+            res.status(200).send(JSON.stringify(request));
         } catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al insertar datos: ' + err.message);
@@ -72,6 +76,7 @@ async function findOneRequest(req, res){
             request.setEmployee(rowsRequest[0].id_empleado);
             request.setClient(rowsRequest[0].id_cliente);
             request.setStateRequest(rowsRequest[0].id_estado);
+            request.setIdServicio(rowsRequest[0].id_estado);
 
         }catch(err){
             console.error('Error: ' + err );
@@ -79,7 +84,128 @@ async function findOneRequest(req, res){
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        res.status(200).send("Objeto: "+JSON.stringify(request));
+        res.status(200).send(JSON.stringify(request));
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
+async function findOneRequestByState(req, res){
+    try{
+        //se crea el objeto cliente
+        let request = new Solicitud();
+        let cliente = new Cliente();
+        console.log(req.body);
+        //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
+        //Obtener conexion a la BBDD
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+
+        const sql_persona = "SELECT id_cliente FROM cliente where id_persona = ?"
+
+        const [rowsPersona, fieldsPersona] = await POOL_CONNECTION.execute(sql_persona, [req.body.id_sesion]);
+        //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
+        const sql = "SELECT * FROM solicitud WHERE id_cliente = ? AND id_estado = ?";
+        //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
+        const [rowsRequest, fieldsRequest] = await POOL_CONNECTION.execute(sql, [rowsPersona[0].id_cliente, req.body.estado]);
+        //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
+        var solicitudes = [];
+        try{  
+            //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
+            if(rowsRequest.length === 0){
+                res.status(200).send("Objeto no encontrado");
+            }else{
+                
+                for(let i=0; i < rowsRequest.length ; i++){
+                    request.setDescription(rowsRequest[i].descripcion);
+                    request.setDateStart(rowsRequest[i].fecha_inicial);
+                    request.setTotalRequest(rowsRequest[i].total_solicitud);
+                    request.setPayment(rowsRequest[i].id_pago);
+                    request.setEmployee(rowsRequest[i].id_empleado);
+                    request.setClient(rowsRequest[i].id_cliente);
+                    request.setStateRequest(rowsRequest[i].id_estado);
+                    solicitudes.push(request.toString());
+                    
+                }
+                res.status(200).send(solicitudes);
+            }
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+        
+    }catch(err){
+        console.error('Error: ' + err);
+        res.status(500).send('Error inesperado en el servidor');
+    }
+}
+
+async function findOneRequestByStateTrabajador(req, res){
+    try{
+        //se crea el objeto cliente
+        let request = new Solicitud();
+        let trabajador = new Trabajador();
+        console.log(req.body);
+        //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
+        //Obtener conexion a la BBDD
+        const POOL_CONNECTION = await createPOOL_CONNECTION();
+        var sql_persona;
+        var id_persona;
+        if(req.body.id_trabajador){
+            sql_persona = "SELECT id_trabajador FROM trabajador where id_persona = ?";
+            id_persona = req.body.id_trabajador;
+            console.log("consulta trabajador");
+        }if(req.body.id_cliente){
+            sql_persona = "SELECT id_cliente FROM cliente where id_persona = ?";
+            id_persona = req.body.id_cliente;
+            console.log("consulta cliente");
+        }
+        const [rowsPersona, fieldsPersona] = await POOL_CONNECTION.execute(sql_persona, [id_persona]);
+        console.log(rowsPersona[0]);
+        //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
+        var sql;
+        if(req.body.id_trabajador){
+            sql = "SELECT * FROM solicitud WHERE id_empleado = ? AND id_estado = ?";
+            id_persona = rowsPersona[0].id_trabajador;
+            console.log("consulta trabajador");
+        }if(req.body.id_cliente){
+            sql = "SELECT * FROM solicitud WHERE id_cliente = ? AND id_estado = ?";
+            id_persona = rowsPersona[0].id_cliente;
+            console.log("consulta cliente");
+        }
+        //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
+        const [rowsRequest, fieldsRequest] = await POOL_CONNECTION.execute(sql, [id_persona, req.body.estado]);
+        //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
+        var solicitudes = [];
+        try{  
+            //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
+            if(rowsRequest.length === 0){
+                res.status(200).send("Objeto no encontrado");
+            }else{
+                
+                for(let i=0; i < rowsRequest.length ; i++){
+                    request.setIdRequest(rowsRequest[i].id_solicitud);
+                    request.setDescription(rowsRequest[i].descripcion);
+                    request.setDateStart(rowsRequest[i].fecha_inicial);
+                    request.setTotalRequest(rowsRequest[i].total_solicitud);
+                    request.setPayment(rowsRequest[i].id_pago);
+                    request.setEmployee(rowsRequest[i].id_empleado);
+                    request.setClient(rowsRequest[i].id_cliente);
+                    request.setStateRequest(rowsRequest[i].id_estado);
+                    solicitudes.push(request.toString());
+                    
+                }
+                res.status(200).send(solicitudes);
+            }
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+        
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
@@ -159,6 +285,35 @@ async function updateOneRequest(req, res){
     }
 }
 
+async function updateOneRequestByState(req, res){
+    //se puede actualizar de la tabla cliente solo: estado y tipo cliente
+    //se puede actualizar de la clase persona solo: nombres, apellidos, telefono, direccion, email, foto de perfil, numero de docuemnto
+   try{
+    //Se instancia la entidad cliente
+    let request = new Solicitud();
+    console.log(req.body);
+    const POOL_CONNECTION = await createPOOL_CONNECTION();
+        try{
+        //Sentencia para saber el id_persona segun el id_cliente pasado mediante el body de la consulta
+            const sql_request= "UPDATE solicitud SET id_estado = ? WHERE id_solicitud = ?";
+            const [updateData, fieldsUpdate] = await POOL_CONNECTION.execute(sql_request, [req.body.estado, req.body.id_solicitud]);   
+            console.log(updateData[0]);  
+            request.setIdRequest(req.body.id_solicitud);
+            request.setStateRequest(req.body.estado);
+
+            res.status(200).send(JSON.stringify(request));
+        }catch(err){
+            console.error('Error: ' + err );
+            res.status(500).send('Error al Actualizando datos: ' + err.message);
+        }finally{
+            closePOOL_CONNECTION(POOL_CONNECTION);
+        }
+    }catch(err){
+    console.log("Error al actualizar: " + err);
+    res.status(500).send(err);
+    }
+}
+
 async function deleteOneRequest(req, res){
     try{
         console.log(req.params.id)
@@ -195,4 +350,4 @@ function prueba7(req, res){
     
 }
 
-module.exports = {createRequest, prueba7, findOneRequest, findAllRequest, updateOneRequest, deleteOneRequest, deleteAllRequest}
+module.exports = {createRequest, prueba7, findOneRequest, findAllRequest, updateOneRequest, deleteOneRequest, deleteAllRequest, findOneRequestByState, findOneRequestByStateTrabajador, updateOneRequestByState}

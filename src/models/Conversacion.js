@@ -1,11 +1,11 @@
 class Conversacion{
     constructor(idConversation, client, employee, stateConversation, dateStart, dateEnd){
-        this._idConversation = idConversation,
-        this._client = client,
-        this._employee = employee,
-        this._stateConversation = stateConversation,
-        this._dateStart = dateStart,
-        this._dateEnd = dateEnd
+        this._idConversation = idConversation;
+        this._client = client;
+        this._employee = employee;
+        this._stateConversation = stateConversation;
+        this._dateStart = dateStart;
+        this._dateEnd = dateEnd;
     }
 
     getIdConversation(){

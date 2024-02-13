@@ -1,6 +1,7 @@
 class Solicitud{
-    constructor(idRequest, description, dateStart, dateEnd, totalRequest, payment, employee, client, stateRequest){
+    constructor(idRequest, description, dateStart, dateEnd, totalRequest, payment, employee, client, stateRequest, idServicio){
         this._idRequest = idRequest,
+        this._idServicio = idServicio,
         this._description = description,
         this._dateStart = dateStart,
         this._dateEnd = dateEnd,
@@ -16,6 +17,13 @@ class Solicitud{
     }
     setIdRequest(idRequest){
         this._idRequest = idRequest;
+    }
+
+    getIdServicio(){
+        return this._idServicio;
+    }
+    setIdServicio(idServicio){
+        this._idServicio = idServicio;
     }
 
     getDescription(){
@@ -72,6 +80,35 @@ class Solicitud{
     }
     setStateRequest(stateRequest){
         this._stateRequest = stateRequest;
+    }
+
+    fechaFin(){
+        if(this._dateEnd){
+            this._dateEnd;
+        }else{
+            return 'sin datos';
+        }
+    }
+
+    idSolicitud(){
+        if(this._idRequest){
+            this._idRequest;
+        }else{
+            return '"sin datos"';
+        }
+    }
+
+    toString(){
+        return `{"id_solicitud":${this._idRequest},
+        "descripcion":"${this._description}",
+        "fecha_inicio":"${this._dateStart}",
+        "fecha_fin":"${this.fechaFin()}",
+        "total_solicitud":"${this._totalRequest}",
+        "id_pago":"${this._payment}",
+        "empleado":"${this._employee}",
+        "cliente":"${this._client}",
+        "estado":${this._stateRequest}
+        }`;
     }
 }
 
