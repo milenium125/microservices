@@ -178,14 +178,14 @@ async function findAllTrabajadorBySevices(req, res){
     try{
         const POOL_CONNECTION = await createPOOL_CONNECTION();
         try{
-            const sql = "SELECT id_empleado FROM servicios_empleado WHERE id_servicio = ?";
+            const sql = "SELECT id_trabajador FROM servicios_empleado WHERE id_servicio = ?";
             const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql, [req.params.id]);       
 
             var response_data = [];
 
             for (let i = 0; i < rowsService.length; i++) {
                 // console.log(rowsUser); 
-                response_data.push(rowsService[i].id_empleado);
+                response_data.push(rowsService[i].id_trabajador);
             }
             res.status(200).send(response_data);
         }catch(err){

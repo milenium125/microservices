@@ -1,32 +1,34 @@
 const {createPOOL_CONNECTION, closePOOL_CONNECTION} = require('../config/database');
-const Login = require('../models/Login');
+const ServicioTrabajador = require("../models/ServicioTrabajador");
 
-async function createLogin(req, res){
+async function createServiceTrabajador(req, res){
     try{
         const POOL_CONNECTION = await createPOOL_CONNECTION();
         console.log(req.body);
         //creacion del objeto cliente
-        let login = new Login();
+        let service = new ServicioTrabajador();
         //Usuario.setIdUser();
         //set de los datos enviados por el body de la peticion al objeto construido
-        login.setUsername(req.body.username);
-        login.setPassword(req.body.password);
-        login.setUser(req.body.id_persona);    
-        
+        service.setServicio(req.body.id_servicio);
+        service.setIdTrabajador(req.body.id_trabajador);
+        service.setPrecio(req.body.precio);
+
+
         //sentencia sql para insertar una nueva persona, esto es previo a la creacion del cliente
-        const sql = "INSERT INTO login (username, contraseña, id_persona) VALUES (?,?,?);";
+        const sql = "INSERT INTO servicios_empleado (id_servicio, precio, id_trabajador) VALUES (?,?,?);";
+
         //creacion del arry con los argumentos de la peticion (prepared statement)
         const inserts = [
-            login.getUsername(),
-            login.getPassword(),
-            login.getUser(),
+            service.getServicio(),
+            service.getPrecio(),
+            service.getIdTrabajador()            
         ];
-        // console.log(cliente);
+         console.log(inserts);
         try{
             //ejecucion de la sentencia de registro de la persona
-            const result_login = await POOL_CONNECTION.execute(sql, inserts);
+            const result_service = await POOL_CONNECTION.execute(sql, inserts);
             //console.log("test")   
-            res.send(JSON.stringify(login));
+            res.send(JSON.stringify(service));
         } catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al insertar datos: ' + err.message);
@@ -40,119 +42,103 @@ async function createLogin(req, res){
     }
 }
 
-async function thereIsAnyUser(req, res){
-    var username = req.body.username;
-    try {
-        const sql = "SELECT id_persona FROM login WHERE user = ?;";
-        const result_login = await POOL_CONNECTION.execute(sql, [username]);
-        //console.log("test")   
-        if(result_login.length > 0){
-            res.send(JSON.stringify(`{"id_persona": ${result_login[0].id_persona}}`));
-        }
-    } catch (e) {
-        console.log(e)
-        res.send('Sin resultados');
-    }
-}
-
-async function findOneLogin(req, res){
+async function findOneServiceTrabajador(req, res){
     try{
         //se crea el objeto cliente
-        let login = new Login();
+        let service = new ServicioTrabajador();
         //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
-        login.setIdLogin(req.params.id)
+        service.setIdServicioSolicitud(req.params.id)
         //Obtener conexion a la BBDD
         const POOL_CONNECTION = await createPOOL_CONNECTION();
         //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
-        const sql = "SELECT * FROM login WHERE id_login = ?";
+        const sql = "SELECT * FROM servicios_empleado WHERE id_servicio_empleado = ?";
         //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
-        const [rowsLogin, fieldsLogin] = await POOL_CONNECTION.execute(sql, [login.getIdLogin()]);
+        const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql, [service.getIdServicioSolicitud()]);
+        
         //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
         try{  
             //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
-            login.setUsername(rowsLogin[0].username);
-            login.setPassword(rowsLogin[0].password);
-            login.setUser(rowsLogin[0].id_persona);    
-
+            service.setServicio(rowsService[0].id_servicio);
+            service.setIdTrabajador(rowsService[0].id_trabajador);
+            service.setPrecio(rowsService[0].precio);
+            console.log(service);
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        res.status(200).send("Objeto: "+JSON.stringify(login));
+        res.status(200).send(JSON.stringify(service));
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
     }
 }
 
-async function findOneUser(req, res){
-    console.log(req.body);
+async function findOneServiceTrabajadorByIdTrabajador(req, res){
     try{
         //se crea el objeto cliente
-        let login = new Login();
+        let service = new ServicioTrabajador();
         //se introduce el parametro id_cliente proporcionado mediante el parametro :id del endpoint
-        login.setUser(req.params.user)
+        
         //Obtener conexion a la BBDD
         const POOL_CONNECTION = await createPOOL_CONNECTION();
         //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
-        const sql = "SELECT * FROM login WHERE username = ?";
-        
+        const sql = "SELECT * FROM servicios_empleado WHERE id_trabajador = ?";
         //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
-        const [rowsLogin, fieldsLogin] = await POOL_CONNECTION.execute(sql, [req.body.username]);
+        const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql, [req.params.id]);
+        console.log(rowsService);
         //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
         try{  
             //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
-            if(rowsLogin.length > 0){
-                login.setUsername(rowsLogin[0].username);
-                login.setPassword(rowsLogin[0].contraseña);
-                login.setUser(rowsLogin[0].id_persona);   
-                console.log(login);
-                if(login.getPassword() == req.body.password){
-                    res.status(200).send({"id_persona":login.getUser()});
-                }else{
-                    res.status(302).send({"error": "credenciales incorrectas"});   
-                }
-            }else{
-                res.status(500).send({"error": "No encontrado"}); 
+            var response = [];
+            for (let i = 0; i < rowsService.length; i++) {
+                //Se instancia la entidad cliente
+                let service = new ServicioTrabajador();
+                // console.log(rowsUser);  
+                service.setIdServicioTrabajador(rowsService[i].id_servicio_trabajador);
+                service.setServicio(rowsService[i].id_servicio);
+                service.setIdTrabajador(rowsService[i].id_trabajador);
+                service.setPrecio(rowsService[i].precio);
+                console.log(JSON.stringify(service));
+                response.push(service);
             }
-
         }catch(err){
             console.error('Error: ' + err );
-            res.status(500).send({"error": "No encontrado"}); 
+            res.status(500).send('Error al Encontrar datos: ' + err.message);
         }finally{
             closePOOL_CONNECTION(POOL_CONNECTION);
         }
-        
+        res.status(200).send(response);
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
     }
 }
 
-async function findAllLogin(req, res){
+
+async function findAllServiceTrabajador(req, res){
     try{
         const POOL_CONNECTION = await createPOOL_CONNECTION();
 
         try{
-            const sql = "SELECT * FROM login";
+            const sql = "SELECT * FROM servicios_empleado";
 
-            const [rowsLogin, fieldsLogin] = await POOL_CONNECTION.execute(sql);
+            const [rowsService, fieldsService] = await POOL_CONNECTION.execute(sql);
 
             var response = [];
 
-            for (let i = 0; i < rowsLogin.length; i++) {
+            for (let i = 0; i < rowsService.length; i++) {
                 //Se instancia la entidad cliente
-                let login = new Login();
+                let service = new ServicioTrabajador();
                 // console.log(rowsUser);  
-                login.setUsername(rowsLogin[i].username);
-                login.setPassword(rowsLogin[i].contraseña);
-                login.setUser(rowsLogin[i].id_persona);  
-                response.push(login);
+                service.setServicio(rowsService[0].id_servicio);
+                service.setIdTrabajador(rowsService[0].id_trabajador);
+                service.setPrecio(rowsService[0].precio);
+                response.push(JSON.stringify(service));
                 
             }
-            res.status(200).send(JSON.stringify(response));
+            res.status(200).send(response);
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
@@ -167,22 +153,24 @@ async function findAllLogin(req, res){
     }
 }
 
-async function updateOneLogin(req, res){
+async function updateOneServiceTrabajador(req, res){
     //se puede actualizar de la tabla cliente solo: estado y tipo cliente
     //se puede actualizar de la clase persona solo: nombres, apellidos, telefono, direccion, email, foto de perfil, numero de docuemnto
    try{
     //Se instancia la entidad cliente
-    let login = new Login();
+    let service = new ServicioTrabajador();
     console.log(req.body);
     const POOL_CONNECTION = await createPOOL_CONNECTION();
         try{
         //Sentencia para saber el id_persona segun el id_cliente pasado mediante el body de la consulta
-            const sql_login= "UPDATE login SET contraseña = ? WHERE id_persona = ?";
-            const [updateData, fieldsUpdate] = await POOL_CONNECTION.execute(sql_login, [req.body.password, req.body.id_persona]);   
-            console.log(updateData[0]);  
-            login.setPassword(req.body.password);
-            login.setUser(req.body.id_persona)
-            res.status(200).send(JSON.stringify(login));
+            const sql_service= "UPDATE servicios_empleado SET id_servicio = ?, precio = ?, id_trabajador = ? WHERE id_servicio_empleado = ?";
+            service.setIdServicioTrabajador(req.body.id_servicio_trabajador)
+            service.setServicio(req.body.id_servicio);
+            service.setIdTrabajador(req.body.id_trabajador);
+            service.setPrecio(req.body.precio);
+            const [updateData, fieldsUpdate] = await POOL_CONNECTION.execute(sql_service, [service.getIdServicioSolicitud(), service.getServicio(), service.getIdSolicitud()]);   
+            console.log(updateData[0]);     
+            res.status(200).send(JSON.stringify(service));
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Actualizando datos: ' + err.message);
@@ -195,12 +183,14 @@ async function updateOneLogin(req, res){
     }
 }
 
-async function deleteOneLogin(req, res){
+///falta configurar da aca de aca para abajo
+
+async function deleteOneServiceTrabajador(req, res){
     try{
         console.log(req.params.id)
         const POOL_CONNECTION = await createPOOL_CONNECTION();
 
-        const sql = "DELETE FROM login WHERE id_login = ?";
+        const sql = "DELETE FROM servicios WHERE id_servicio = ?";
 
         POOL_CONNECTION.execute(sql, [req.params.id]);
 
@@ -211,11 +201,11 @@ async function deleteOneLogin(req, res){
     }
 }
 
-async function deleteAllLogin(req, res){
+async function deleteAllServiceTrabajador(req, res){
     try{
         const POOL_CONNECTION = await createPOOL_CONNECTION();
 
-        const sql = "DELETE FROM login";
+        const sql = "DELETE FROM servicios";
 
         POOL_CONNECTION.execute(sql);
 
@@ -226,9 +216,5 @@ async function deleteAllLogin(req, res){
     }
 }
 
-function prueba4(req, res){
-    res.send("Hello World"); 
-    
-}
 
-module.exports = {createLogin, prueba4, findOneLogin, findAllLogin, updateOneLogin, deleteOneLogin, deleteAllLogin, findOneUser, thereIsAnyUser}
+module.exports = {createServiceTrabajador, findOneServiceTrabajador, findAllServiceTrabajador, updateOneServiceTrabajador, deleteOneServiceTrabajador, deleteAllServiceTrabajador, findOneServiceTrabajadorByIdTrabajador}

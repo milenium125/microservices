@@ -21,7 +21,7 @@ async function createRequest(req, res){
         
         console.log(request);
         //sentencia sql para insertar una nueva persona, esto es previo a la creacion del cliente
-        const sql = "INSERT INTO solicitud (descripcion, fecha_inicial, total_solicitud, id_pago, id_empleado, id_cliente, id_estado) VALUES (?,?,?,?,?,?,?);";
+        const sql = "INSERT INTO solicitud (descripcion, fecha_inicial, total_solicitud, id_pago, id_trabajador, id_cliente, id_estado) VALUES (?,?,?,?,?,?,?);";
 
         //creacion del arry con los argumentos de la peticion (prepared statement)
         const inserts = [
@@ -33,12 +33,13 @@ async function createRequest(req, res){
             request.getClient(),
             request.getStateRequest()
         ];
-        const last_id = await POOL_CONNECTION.execute("SELECT MAX(id_solicitud) AS id FROM solicitud");
-        request.setIdRequest(last_id[0][0].id)
-        console.log("ultimo id: "+last_id[0][0].id);
+        
         try{
             //ejecucion de la sentencia de registro de la persona
             const result_request = await POOL_CONNECTION.execute(sql, inserts);
+            const last_id = await POOL_CONNECTION.execute("SELECT MAX(id_solicitud) AS id FROM solicitud");
+            request.setIdRequest(last_id[0][0].id)
+            console.log("ultimo id: "+last_id[0][0].id);
             //console.log("test")   
             res.status(200).send(JSON.stringify(request));
         } catch(err){
@@ -73,7 +74,7 @@ async function findOneRequest(req, res){
             request.setDateStart(rowsRequest[0].fecha_inicial);
             request.setTotalRequest(rowsRequest[0].total_solicitud);
             request.setPayment(rowsRequest[0].id_pago);
-            request.setEmployee(rowsRequest[0].id_empleado);
+            request.setEmployee(rowsRequest[0].id_trabajador);
             request.setClient(rowsRequest[0].id_cliente);
             request.setStateRequest(rowsRequest[0].id_estado);
             request.setIdServicio(rowsRequest[0].id_estado);
@@ -167,7 +168,7 @@ async function findOneRequestByStateTrabajador(req, res){
         //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
         var sql;
         if(req.body.id_trabajador){
-            sql = "SELECT * FROM solicitud WHERE id_empleado = ? AND id_estado = ?";
+            sql = "SELECT * FROM solicitud WHERE id_trabajador = ? AND id_estado = ?";
             id_persona = rowsPersona[0].id_trabajador;
             console.log("consulta trabajador");
         }if(req.body.id_cliente){
@@ -191,7 +192,7 @@ async function findOneRequestByStateTrabajador(req, res){
                     request.setDateStart(rowsRequest[i].fecha_inicial);
                     request.setTotalRequest(rowsRequest[i].total_solicitud);
                     request.setPayment(rowsRequest[i].id_pago);
-                    request.setEmployee(rowsRequest[i].id_empleado);
+                    request.setEmployee(rowsRequest[i].id_trabajador);
                     request.setClient(rowsRequest[i].id_cliente);
                     request.setStateRequest(rowsRequest[i].id_estado);
                     solicitudes.push(request.toString());

@@ -30,10 +30,11 @@ const {prueba4, createLogin, findOneLogin, findAllLogin, updateOneLogin, deleteO
 const {prueba5, createMessage, findOneMessage, findAllMessage, updateOneMessage, deleteOneMessage, deleteAllMessage} = require('../controllers/MensajeController');
 const {prueba6, createService, findOneService, findAllService, updateOneService, deleteOneService, deleteAllService,findAllServiceAvailables, findAllTrabajadorBySevices} = require('../controllers/ServicioController');
 const {createServiceSolicitud, findOneServiceSolicitud, findAllServiceSolicitud, updateOneServiceSolicitud, deleteOneServiceSolicitud, deleteAllServiceSolicitud, findOneServiceSolicitudByIdSolicitud} = require('../controllers/ServicioSolicitudController');
+const {createServiceTrabajador, findOneServiceTrabajador, findAllServiceTrabajador, updateOneServiceTrabajador, deleteOneServiceTrabajador, deleteAllServiceTrabajador, findOneServiceTrabajadorByIdTrabajador} = require('../controllers/ServicioTrabajadorController');
 const {prueba7, createRequest, findOneRequest, findAllRequest, updateOneRequest, deleteOneRequest, deleteAllRequest, findOneRequestByState, findOneRequestByStateTrabajador, updateOneRequestByState} = require('../controllers/SolicitudController'); 
 const {prueba8, createPayment, findOnePayment, findAllPayment, updateOnePayment, deleteOnePayment, deleteAllPayment} = require('../controllers/PagoController');
 const {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador, subirDocumentos, getIdTrabajadorByIdUser} = require('../controllers/TrabajadorController');
-createServiceSolicitud, findOneServiceSolicitud, findAllServiceSolicitud, updateOneServiceSolicitud, deleteOneServiceSolicitud, deleteAllServiceSolicitud
+
 
 app.get('/',  prueba);
 // CRUD Customer
@@ -98,6 +99,14 @@ app.delete("/api/service-solicitud/delete/:id", deleteOneServiceSolicitud);
 app.delete("/api/service-solicitud/delete", deleteAllServiceSolicitud); 
 app.get("/api/service-solicitud/find/solicitud/:id", findOneServiceSolicitudByIdSolicitud);
 
+app.post('/api/service-trabajador/create',jsonParser,  createServiceTrabajador);
+app.get('/api/service-trabajador/find/:id', findOneServiceTrabajador);
+app.get("/api/service-trabajador/find", findAllServiceTrabajador);
+app.put("/api/service-trabajador/update",jsonParser , updateOneServiceTrabajador);
+app.delete("/api/service-trabajador/delete/:id", deleteOneServiceTrabajador);
+app.delete("/api/service-trabajador/delete", deleteAllServiceTrabajador); 
+app.get("/api/service-trabajador/find/solicitud/:id", findOneServiceTrabajadorByIdTrabajador);
+
 //CRUD Solicitud
 app.post('/api/request/create',jsonParser,  createRequest);
 app.post("/api/request/find",jsonParser, findOneRequestByState);
@@ -108,7 +117,7 @@ app.put("/api/request/update",jsonParser , updateOneRequest);
 app.delete("/api/request/delete/:id", deleteOneRequest);
 app.delete("/api/request/delete", deleteAllRequest); findOneRequestByStateTrabajador
 app.post("/api/request/find/trabajador", jsonParser, findOneRequestByStateTrabajador);
-updateOneRequestByState
+
 
 //CRUD Pago
 app.post('/api/payment/create',jsonParser,  createPayment);
