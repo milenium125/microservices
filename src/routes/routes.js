@@ -33,8 +33,8 @@ const {createServiceSolicitud, findOneServiceSolicitud, findAllServiceSolicitud,
 const {createServiceTrabajador, findOneServiceTrabajador, findAllServiceTrabajador, updateOneServiceTrabajador, deleteOneServiceTrabajador, deleteAllServiceTrabajador, findOneServiceTrabajadorByIdTrabajador} = require('../controllers/ServicioTrabajadorController');
 const {prueba7, createRequest, findOneRequest, findAllRequest, updateOneRequest, deleteOneRequest, deleteAllRequest, findOneRequestByState, findOneRequestByStateTrabajador, updateOneRequestByState} = require('../controllers/SolicitudController'); 
 const {prueba8, createPayment, findOnePayment, findAllPayment, updateOnePayment, deleteOnePayment, deleteAllPayment} = require('../controllers/PagoController');
-const {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador, subirDocumentos, getIdTrabajadorByIdUser} = require('../controllers/TrabajadorController');
-
+const {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador, subirDocumentos, getIdTrabajadorByIdUser, servirImagenes} = require('../controllers/TrabajadorController');
+const {createNewChat, getChatsbySolicitud} = require("../controllers/ChatController");
 
 app.get('/',  prueba);
 // CRUD Customer
@@ -137,4 +137,14 @@ app.put("/api/trabajador/update",jsonParser , updateOneTrabajador);
 app.delete("/api/trabajador/delete/:id", deleteOneTrabajador);
 app.delete("/api/trabajador/delete", deleteAllTrabajador);getIdTrabajadorByIdUser
 app.get("/api/trabajador/find/persona/:id", getIdTrabajadorByIdUser);
+app.get("/api/img/:id", servirImagenes);
+
+//CRUD CHAT
+app.post('/api/chat/create',jsonParser,  createNewChat);
+app.get('/api/chat/find/:solicitud', getChatsbySolicitud);
+// app.get("/api/payment/find", findAllPayment);
+// app.put("/api/payment/update",jsonParser , updateOnePayment);
+// app.delete("/api/payment/delete/:id", deleteOnePayment);
+// app.delete("/api/payment/delete", deleteAllPayment);
+
 module.exports = app;

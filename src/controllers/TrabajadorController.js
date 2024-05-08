@@ -1,6 +1,7 @@
 const {createPOOL_CONNECTION, closePOOL_CONNECTION} = require('../config/database');
 const Trabajador = require('../models/Trabajador');
 const multer = require('multer');
+const path = require('path');
 
 var storage = multer.diskStorage({
     destination: function(req,file,cb){
@@ -131,13 +132,13 @@ async function findOneClient(req, res){
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
-        }finally{
-            closePOOL_CONNECTION(POOL_CONNECTION);
         }
         res.status(200).send(cliente);
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
+    }finally{
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }
 }
 
@@ -207,13 +208,11 @@ async function findOneTrabajador(req, res){
             }catch(err){
                 console.error('Error: ' + err );
                 res.status(500).send({"error": err.message});
-            }finally{
-                closePOOL_CONNECTION(POOL_CONNECTION);
             }
         }else{
             res.status(404).send({"error": false});
         }
-            
+        closePOOL_CONNECTION(POOL_CONNECTION);  
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
@@ -236,8 +235,9 @@ async function getIdTrabajadorByIdUser(req, res){
         //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del trabajador
         trabajador.setIdTrabajador(rowsTrabajador[0].id_trabajador);
         
+        
         res.status(200).send(trabajador);
-            
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
@@ -289,14 +289,14 @@ async function findAllTrabajador(req, res){
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
-        }finally{
-            closePOOL_CONNECTION(POOL_CONNECTION);
         }
     
         
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');
+    }finally{
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }
 }
 
@@ -334,12 +334,12 @@ async function updateOneTrabajador(req, res){
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Actualizando datos: ' + err.message);
-        }finally{
-            closePOOL_CONNECTION(POOL_CONNECTION);
         }
     }catch(err){
     console.log("Error al actualizar: " + err);
     res.status(500).send(err);
+    }finally{
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }
 }
 
@@ -356,6 +356,8 @@ async function deleteOneTrabajador(req, res){
     }catch(err){
         console.log(`Error al Eliminar el id: ${req.params.id} | ` + err);
         res.status(500).send(err);
+    }finally{
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }
 }
 
@@ -371,6 +373,8 @@ async function deleteAllTrabajador(req, res){
     }catch(err){
         console.log("Error al Eliminar todos los registros: " + err);
         res.status(500).send(err);
+    }finally{
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }
 }
 
@@ -385,4 +389,10 @@ function subirDocumentos(req, res){
     
 }
 
-module.exports = {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador,subirDocumentos, getIdTrabajadorByIdUser}
+function servirImagenes(req, res){
+    var url_img = req.params.id;
+    __dirname = path.resolve('');
+    res.sendFile(`${__dirname}/src/assets/${url_img}.jpg`)
+}
+
+module.exports = {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador,subirDocumentos, getIdTrabajadorByIdUser, servirImagenes}
