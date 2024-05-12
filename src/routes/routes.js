@@ -35,6 +35,8 @@ const {prueba7, createRequest, findOneRequest, findAllRequest, updateOneRequest,
 const {prueba8, createPayment, findOnePayment, findAllPayment, updateOnePayment, deleteOnePayment, deleteAllPayment} = require('../controllers/PagoController');
 const {createTrabajador, findOneTrabajador, findAllTrabajador, updateOneTrabajador, deleteOneTrabajador, deleteAllTrabajador, subirDocumentos, getIdTrabajadorByIdUser, servirImagenes} = require('../controllers/TrabajadorController');
 const {createNewChat, getChatsbySolicitud} = require("../controllers/ChatController");
+const {createCalificacion, findPromedioById} = require("../controllers/CalificacionController");
+const {createIngreso, findIngresoByIdByState} = require("../controllers/IngresosTrabajadorController");
 
 app.get('/',  prueba);
 // CRUD Customer
@@ -115,7 +117,7 @@ app.get('/api/request/find/:id', findOneRequest);
 app.get("/api/request/find", findAllRequest);
 app.put("/api/request/update",jsonParser , updateOneRequest);
 app.delete("/api/request/delete/:id", deleteOneRequest);
-app.delete("/api/request/delete", deleteAllRequest); findOneRequestByStateTrabajador
+app.delete("/api/request/delete", deleteAllRequest);
 app.post("/api/request/find/trabajador", jsonParser, findOneRequestByStateTrabajador);
 
 
@@ -135,13 +137,29 @@ app.post('/subir/cedula', upload.single('cedula'), subirDocumentos);
 app.post('/subir/diploma', upload2.single('diploma'), subirDocumentos);
 app.put("/api/trabajador/update",jsonParser , updateOneTrabajador);
 app.delete("/api/trabajador/delete/:id", deleteOneTrabajador);
-app.delete("/api/trabajador/delete", deleteAllTrabajador);getIdTrabajadorByIdUser
+app.delete("/api/trabajador/delete", deleteAllTrabajador);
 app.get("/api/trabajador/find/persona/:id", getIdTrabajadorByIdUser);
 app.get("/api/img/:id", servirImagenes);
 
 //CRUD CHAT
 app.post('/api/chat/create',jsonParser,  createNewChat);
 app.get('/api/chat/find/:solicitud', getChatsbySolicitud);
+// app.get("/api/payment/find", findAllPayment);
+// app.put("/api/payment/update",jsonParser , updateOnePayment);
+// app.delete("/api/payment/delete/:id", deleteOnePayment);
+// app.delete("/api/payment/delete", deleteAllPayment);
+
+//CRUD CALIFICACION
+app.post('/api/calificacion/create',jsonParser,  createCalificacion);
+app.get('/api/calificacion/find/:id', findPromedioById);
+// app.get("/api/payment/find", findAllPayment);
+// app.put("/api/payment/update",jsonParser , updateOnePayment);
+// app.delete("/api/payment/delete/:id", deleteOnePayment);
+// app.delete("/api/payment/delete", deleteAllPayment);
+
+//CRUD INGRESOS
+app.post('/api/ingreso/create',jsonParser,  createIngreso);
+app.get('/api/ingreso/find/:id/:state', findIngresoByIdByState);
 // app.get("/api/payment/find", findAllPayment);
 // app.put("/api/payment/update",jsonParser , updateOnePayment);
 // app.delete("/api/payment/delete/:id", deleteOnePayment);

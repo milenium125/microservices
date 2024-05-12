@@ -164,49 +164,57 @@ async function findOneRequestByStateTrabajador(req, res){
             console.log("consulta cliente");
         }
         const [rowsPersona, fieldsPersona] = await POOL_CONNECTION.execute(sql_persona, [id_persona]);
-        console.log(rowsPersona[0]);
-        //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
-        var sql;
-        if(req.body.id_trabajador){
-            sql = "SELECT * FROM solicitud WHERE id_trabajador = ? AND id_estado = ?";
-            id_persona = rowsPersona[0].id_trabajador;
-            console.log("consulta trabajador");
-        }if(req.body.id_cliente){
-            sql = "SELECT * FROM solicitud WHERE id_cliente = ? AND id_estado = ?";
-            id_persona = rowsPersona[0].id_cliente;
-            console.log("consulta cliente");
-        }
-        //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
-        const [rowsRequest, fieldsRequest] = await POOL_CONNECTION.execute(sql, [id_persona, req.body.estado]);
-        //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
-        var solicitudes = [];
-        try{  
-            //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
-            if(rowsRequest.length === 0){
-                res.status(200).send("Objeto no encontrado");
-            }else{
-                
-                for(let i=0; i < rowsRequest.length ; i++){
-                    request.setIdRequest(rowsRequest[i].id_solicitud);
-                    request.setDescription(rowsRequest[i].descripcion);
-                    request.setDateStart(rowsRequest[i].fecha_inicial);
-                    request.setTotalRequest(rowsRequest[i].total_solicitud);
-                    request.setPayment(rowsRequest[i].id_pago);
-                    request.setEmployee(rowsRequest[i].id_trabajador);
-                    request.setClient(rowsRequest[i].id_cliente);
-                    request.setStateRequest(rowsRequest[i].id_estado);
-                    solicitudes.push(request.toString());
-                    
-                }
-                res.status(200).send(solicitudes);
+        console.log("Persona");
+        console.log(rowsPersona);
+        console.log("Body")
+        console.log(req.body);
+        if(rowsPersona.length > 0){
+            //Sentencia para obtener los datos de la tabla cliente segun el id_cliente enviado por el parametro :id
+            var sql;
+            if(req.body.id_trabajador){
+                sql = "SELECT * FROM solicitud WHERE id_trabajador = ? AND id_estado = ?";
+                id_persona = rowsPersona[0].id_trabajador;
+                console.log("consulta trabajador");
+            }if(req.body.id_cliente){
+                sql = "SELECT * FROM solicitud WHERE id_cliente = ? AND id_estado = ?";
+                id_persona = rowsPersona[0].id_cliente;
+                console.log("consulta cliente");
             }
-        }catch(err){
-            console.error('Error: ' + err );
-            res.status(500).send('Error al Encontrar datos: ' + err.message);
-        }finally{
-            closePOOL_CONNECTION(POOL_CONNECTION);
+            //se ejecuta la sentencia y se setea el parametro del objeto cliente id_client  a la sentencia sql
+            const [rowsRequest, fieldsRequest] = await POOL_CONNECTION.execute(sql, [id_persona, req.body.estado]);
+            //se define sentencia sql para consultar el registro de la tabla persona, para tener los datos personales del cliente
+            var solicitudes = [];
+            console.log("rowsRequest");
+            console.log(rowsRequest);
+            try{  
+                //se setea el parametro de id_persona obtenido de la consulta sql a la tabla cliente
+                if(rowsRequest.length == 0){
+                    res.status(200).send("Objeto no encontrado");
+                }else{
+                    
+                    for(let i=0; i < rowsRequest.length ; i++){
+                        request.setIdRequest(rowsRequest[i].id_solicitud);
+                        request.setDescription(rowsRequest[i].descripcion || null);
+                        request.setDateStart(rowsRequest[i].fecha_inicial);
+                        request.setTotalRequest(rowsRequest[i].total_solicitud);
+                        request.setPayment(rowsRequest[i].id_pago);
+                        request.setEmployee(rowsRequest[i].id_trabajador);
+                        request.setClient(rowsRequest[i].id_cliente);
+                        request.setStateRequest(rowsRequest[i].id_estado);
+                        solicitudes.push(request.toString());
+                        
+                    }
+                    res.status(200).send(solicitudes);
+                }
+            }catch(err){
+                console.error('Error: ' + err );
+                res.status(500).send('Error al Encontrar datos: ' + err.message);
+            }
+        }else{
+
         }
         
+        closePOOL_CONNECTION(POOL_CONNECTION);
     }catch(err){
         console.error('Error: ' + err);
         res.status(500).send('Error inesperado en el servidor');

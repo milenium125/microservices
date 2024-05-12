@@ -95,9 +95,8 @@ async function findOneServiceSolicitudByIdSolicitud(req, res){
         }catch(err){
             console.error('Error: ' + err );
             res.status(500).send('Error al Encontrar datos: ' + err.message);
-        }finally{
-            closePOOL_CONNECTION(POOL_CONNECTION);
         }
+        closePOOL_CONNECTION(POOL_CONNECTION);
         res.status(200).send(JSON.stringify(service));
     }catch(err){
         console.error('Error: ' + err);
